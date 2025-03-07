@@ -13,6 +13,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using WebApi.Data;
 using Microsoft.EntityFrameworkCore;
+using WebApi.Services;
+using WebApi.IServices;
 
 namespace WebApi
 {
@@ -29,8 +31,15 @@ namespace WebApi
         public void ConfigureServices(IServiceCollection services)
         {
 
-          services.AddDbContext<ApplicationDbContext>(options =>
+             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+
+            services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+
+            services.AddScoped<IEmployeeService, EmployeeService>();
+            services.AddScoped<IDepartmentService, DepartmentService>();
+            services.AddScoped<IProjectService, ProjectService>();
 
 
             services.AddControllers();
