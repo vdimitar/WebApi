@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using WebApi.IServices;
-using WebApi.Models;
+using WebApi.DTOs;
 
 namespace WebApi.Controllers
 {
@@ -18,14 +18,14 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployees()
+        public async Task<ActionResult<IEnumerable<EmployeeDTO>>> GetEmployees()
         {
             var employees = await _employeeService.GetAllEmployees();
             return Ok(employees);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Employee>> GetEmployee(int id)
+        public async Task<ActionResult<EmployeeDTO>> GetEmployee(int id)
         {
             var employee = await _employeeService.GetEmployeeById(id);
             if (employee == null)
@@ -35,19 +35,22 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Employee>> CreateEmployee(Employee employee)
+        public async Task<ActionResult<EmployeeDTO>> CreateEmployee([FromBody] EmployeeDTO employeeDto)
         {
-            var createdEmployee = await _employeeService.CreateEmployee(employee);
+            if (employeeDto == null)
+                return BadRequest("Invalid employee data");
+
+            var createdEmployee = await _employeeService.CreateEmployee(employeeDto);
             return CreatedAtAction(nameof(GetEmployee), new { id = createdEmployee.Id }, createdEmployee);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEmployee(int id, Employee employee)
+        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] EmployeeDTO employeeDto)
         {
-            if (id != employee.Id)
-                return BadRequest();
+            if (employeeDto == null || id != employeeDto.Id)
+                return BadRequest("Invalid employee data");
 
-            var updated = await _employeeService.UpdateEmployee(id, employee);
+            var updated = await _employeeService.UpdateEmployee(id, employeeDto);
             if (!updated)
                 return NotFound();
 

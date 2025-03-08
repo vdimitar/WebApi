@@ -40,8 +40,10 @@ namespace WebApi
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IDepartmentService, DepartmentService>();
             services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IEmployeeProjectService, EmployeeProjectService>();
+            services.AddScoped<IRandomStringGeneratorService, RandomStringGeneratorService>();
 
-
+            services.AddHttpClient(); 
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {

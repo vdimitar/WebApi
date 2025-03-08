@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using WebApi.IServices;
 using WebApi.Models;
+using WebApi.DTOs;
+using System.Linq;
 
 namespace WebApi.Controllers
 {
@@ -18,36 +20,56 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
+        public async Task<ActionResult<IEnumerable<ProjectDTO>>> GetProjects()
         {
             var projects = await _projectService.GetAllProjects();
-            return Ok(projects);
+
+
+            var projectDtos = projects.Select(p => new ProjectDTO
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Budget = p.Budget,
+                ProjectCode = p.ProjectCode
+            });
+
+            return Ok(projectDtos);
         }
 
+
         [HttpGet("{id}")]
-        public async Task<ActionResult<Project>> GetProject(int id)
+        public async Task<ActionResult<ProjectDTO>> GetProject(int id)
         {
             var project = await _projectService.GetProjectById(id);
             if (project == null)
                 return NotFound();
 
-            return Ok(project);
+
+            var projectDto = new ProjectDTO
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Budget = project.Budget,
+                ProjectCode = project.ProjectCode
+            };
+
+            return Ok(projectDto);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Project>> CreateProject(Project project)
+        public async Task<ActionResult<ProjectDTO>> CreateProject([FromBody] ProjectDTO projectDto)
         {
-            var createdProject = await _projectService.CreateProject(project);
+            var createdProject = await _projectService.CreateProject(projectDto);
             return CreatedAtAction(nameof(GetProject), new { id = createdProject.Id }, createdProject);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProject(int id, Project project)
+        public async Task<IActionResult> UpdateProject(int id, [FromBody] ProjectDTO projectDto)
         {
-            if (id != project.Id)
-                return BadRequest();
+            if (id != projectDto.Id)
+                return BadRequest("Mismatched project ID");
 
-            var updated = await _projectService.UpdateProject(id, project);
+            var updated = await _projectService.UpdateProject(id, projectDto);
             if (!updated)
                 return NotFound();
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using WebApi.IServices;
-using WebApi.Models;
+using WebApi.DTOs;
 
 namespace WebApi.Controllers
 {
@@ -18,14 +18,14 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
+        public async Task<ActionResult<IEnumerable<DepartmentDTO>>> GetDepartments()
         {
             var departments = await _departmentService.GetAllDepartments();
             return Ok(departments);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Department>> GetDepartment(int id)
+        public async Task<ActionResult<DepartmentDTO>> GetDepartment(int id)
         {
             var department = await _departmentService.GetDepartmentById(id);
             if (department == null)
@@ -35,19 +35,22 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Department>> CreateDepartment(Department department)
+        public async Task<ActionResult<DepartmentDTO>> CreateDepartment([FromBody] DepartmentDTO departmentDto)
         {
-            var createdDepartment = await _departmentService.CreateDepartment(department);
+            if (departmentDto == null)
+                return BadRequest("Invalid department data");
+
+            var createdDepartment = await _departmentService.CreateDepartment(departmentDto);
             return CreatedAtAction(nameof(GetDepartment), new { id = createdDepartment.Id }, createdDepartment);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDepartment(int id, Department department)
+        public async Task<IActionResult> UpdateDepartment(int id, [FromBody] DepartmentDTO departmentDto)
         {
-            if (id != department.Id)
-                return BadRequest();
+            if (departmentDto == null || id != departmentDto.Id)
+                return BadRequest("Invalid department data");
 
-            var updated = await _departmentService.UpdateDepartment(id, department);
+            var updated = await _departmentService.UpdateDepartment(id, departmentDto);
             if (!updated)
                 return NotFound();
 
@@ -62,6 +65,14 @@ namespace WebApi.Controllers
                 return NotFound();
 
             return NoContent();
+        }
+
+
+        [HttpGet("{id}/totalBudget")]
+        public async Task<IActionResult> GetTotalBudgetByDepartment(int id)
+        {
+            var totalBudget = await _departmentService.GetTotalBudgetByDepartmentId(id);
+            return Ok(new { departmentId = id, totalBudget });
         }
     }
 }
